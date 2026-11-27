@@ -1,24 +1,30 @@
-FROM  public.ecr.aws/docker/library/node:18.14.2-alpine3.17
 
-ARG REACT_APP_MOVIE_API_URL
-ENV REACT_APP_MOVIE_API_URL=${REACT_APP_MOVIE_API_URL}
+FROM public.ecr.aws/docker/library/python:3.10-alpine
+
+ENV FLASK_RUN_HOST=0.0.0.0
+
+RUN adduser -u 1000 -D app
+
+RUN apk update && apk add --no-cache \
+    pcre \
+    pcre-dev \
+    build-base \
+    gcc \
+    linux-headers \
+    openssl \
+    libffi-dev \
+    && pip install pipenv
 
 WORKDIR /app
 
-# Copy dependdency files
-COPY package*.json ./
+COPY Pipfile Pipfile.lock ./
 
-# Install packages
-RUN npm ci
+RUN ls -la /app && pipenv install --system --deploy
 
-# Copy code
 COPY . .
 
-# Build the app
-RUN npm run build
+RUN mkdir -p /var/www/app && chown -R app:app /app /var/www/app
 
-# Expose the port used by the React app
-EXPOSE 3000
+EXPOSE 5000
 
-# Start the React app when the container starts
-CMD ["npm", "run", "serve"]
+CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "-s", "/var/www/app/app.sock", "--manage-script-name", "--mount", "/=app:app"]
