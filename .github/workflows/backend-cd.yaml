@@ -80,6 +80,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -118,6 +119,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Configure kubectl
@@ -127,8 +129,7 @@ jobs:
             --name "$EKS_CLUSTER_NAME"
 
       - name: Apply Backend Kubernetes manifests
-        run: |
-          kubectl apply -k starter/backend/k8s
+        run: kubectl apply -k starter/backend/k8s
 
       - name: Deploy Backend image
         run: |
