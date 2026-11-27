@@ -33,6 +33,14 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Verify AWS Account and EKS Clusters
+        run: |
+          echo "AWS Account:"
+          aws sts get-caller-identity
+
+          echo "Available EKS Clusters:"
+          aws eks list-clusters --region "$AWS_REGION"
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
