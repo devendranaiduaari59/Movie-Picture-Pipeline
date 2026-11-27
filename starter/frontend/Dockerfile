@@ -1,30 +1,20 @@
+FROM public.ecr.aws/docker/library/node:18.14.2-alpine3.17
 
-FROM public.ecr.aws/docker/library/python:3.10-alpine
-
-ENV FLASK_RUN_HOST=0.0.0.0
-
-RUN adduser -u 1000 -D app
-
-RUN apk update && apk add --no-cache \
-    pcre \
-    pcre-dev \
-    build-base \
-    gcc \
-    linux-headers \
-    openssl \
-    libffi-dev \
-    && pip install pipenv
+ARG REACT_APP_MOVIE_API_URL
+ENV REACT_APP_MOVIE_API_URL=${REACT_APP_MOVIE_API_URL}
 
 WORKDIR /app
 
-COPY Pipfile Pipfile.lock ./
+COPY package*.json ./
 
-RUN ls -la /app && pipenv install --system --deploy
+RUN npm ci
 
 COPY . .
 
-RUN mkdir -p /var/www/app && chown -R app:app /app /var/www/app
+RUN npm run build
 
-EXPOSE 5000
+RUN npm install -g serve
 
-CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "-s", "/var/www/app/app.sock", "--manage-script-name", "--mount", "/=app:app"]
+EXPOSE 3000
+
+CMD ["serve", "-s", "build", "-l", "3000"]
